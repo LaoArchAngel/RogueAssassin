@@ -1,0 +1,18 @@
+RogueAssassin
+A Rogue PvE Assassination CustomClass for HonorBuddy.
+Originally written by fiftypence.
+More details at: 
+
+
+HONORBUDDY VERSION:
+
+
+!!! IMPORTANT !!!
+BUILDING & REFERENCES:
+This project will not build on your computer unless you have a copy of HonorBuddy of the appropriate version 
+(usually the above version or newer). Furthermore, you will have to update the reference for the project to 
+point to the correct executable and library (where ever they may be on your machine).
+
+If I get permission to add the executable and dll needed to ensure a steady reference for the project, I will
+add one.  However, until that time, do not worry about overwriting the reference and commiting.  It must be
+done.
