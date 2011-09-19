@@ -5,4 +5,6 @@
 /TestResults
 *.vspscc
 *.vssscc
+_ReSharper.*
+*.resharper.user
 
