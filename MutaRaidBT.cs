@@ -7,92 +7,82 @@
 // and provide credit where appropriate
 
 using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
 using System.Drawing;
 
-using Styx;
 using Styx.Combat.CombatRoutine;
 using Styx.Helpers;
-using Styx.Logic;
-using Styx.Logic.Combat;
-using Styx.Logic.Pathing;
 using Styx.WoWInternals;
 using Styx.WoWInternals.WoWObjects;
 
 using Doctrine.Talents;
 
-using CommonBehaviors.Actions;
 using TreeSharp;
-using Action = TreeSharp.Action;
 
 namespace MutaRaidBT
 {
-    public partial class MutaRaidBT : CombatRoutine
-    {
-        Version curVersion = new Version(3, 0);
+	public partial class MutaRaidBt : CombatRoutine
+	{
+		private readonly Version _curVersion = new Version(3, 0);
 
-        public override sealed string Name { get { return "MutaRaidBT v" + curVersion; } }
-        public override WoWClass Class { get { return WoWClass.Rogue; } }
+		public override sealed string Name { get { return "MutaRaidBT v" + _curVersion; } }
+		public override WoWClass Class { get { return WoWClass.Rogue; } }
 
-        private static LocalPlayer Me { get { return ObjectManager.Me; } }
-        private readonly SpecManager Talent = new SpecManager();
+		private static LocalPlayer Me { get { return ObjectManager.Me; } }
+		private readonly SpecManager _talent = new SpecManager();
 
-        public override void Initialize()
-        {
-            Logging.Write(Color.Orange, "");
-            Logging.Write(Color.Orange, "MutaRaidBT v" + curVersion + " is now operational.");
-            Logging.Write(Color.Orange, "A BehaviorTree implementation, for maximum speed and performance.");
-            Logging.Write(Color.Orange, "For support and feedback please visit the forum thread.");
-            Logging.Write(Color.Orange, "");
-            Logging.Write(Color.Orange, "Enjoy topping the DPS meters!");
-            Logging.Write(Color.Orange, "");
-        }
+		public override void Initialize()
+		{
+			Logging.Write(Color.Orange, "");
+			Logging.Write(Color.Orange, "MutaRaidBT v" + _curVersion + " is now operational.");
+			Logging.Write(Color.Orange, "A BehaviorTree implementation, for maximum speed and performance.");
+			Logging.Write(Color.Orange, "For support and feedback please visit the forum thread.");
+			Logging.Write(Color.Orange, "");
+			Logging.Write(Color.Orange, "Enjoy topping the DPS meters!");
+			Logging.Write(Color.Orange, "");
+		}
 
-        #region Composite declarations
+		#region Composite declarations
 
-        private Composite _CombatBehavior;
+		private Composite _combatBehavior;
 
-        public override Composite CombatBehavior 
-        { 
-            get 
-            {
-                if (_CombatBehavior == null)
-                {
-                    switch (Talent.Spec)
-                    {
-                        case SpecManager.SpecList.None:
+		public override Composite CombatBehavior
+		{
+			get
+			{
+				if (_combatBehavior == null)
+				{
+					switch (_talent.Spec)
+					{
+						case SpecManager.SpecList.None:
 
-                            _CombatBehavior = BuildNoneCombatBehavior();
-                            Logging.Write(Color.Orange, "  Low level combat unsupported");
-                            break;
+							_combatBehavior = BuildNoneCombatBehavior();
+							Logging.Write(Color.Orange, "Low level combat unsupported");
+							break;
 
-                        case SpecManager.SpecList.Assassination:
+						case SpecManager.SpecList.Assassination:
 
-                            _CombatBehavior = BuildAssassinationCombatBehavior();
-                            Logging.Write(Color.Orange, "  Assassination combat behavior built");
-                            break;
+							_combatBehavior = BuildAssassinationCombatBehavior();
+							Logging.Write(Color.Orange, "Assassination combat behavior built");
+							break;
 
-                        case SpecManager.SpecList.Combat:
+						case SpecManager.SpecList.Combat:
 
-                            _CombatBehavior = BuildCombatCombatBehavior();
-                            Logging.Write(Color.Orange, "  Combat combat behavior built (EXPERIMENTAL)");
-                            break;
+							_combatBehavior = BuildCombatCombatBehavior();
+							Logging.Write(Color.Orange, "Combat combat behavior built (EXPERIMENTAL)");
+							break;
 
-                        case SpecManager.SpecList.Subtlety:
+						case SpecManager.SpecList.Subtlety:
 
-                            _CombatBehavior = BuildSubtletyCombatBehavior();
-                            Logging.Write(Color.Orange, "  Subtlety combat unsupported");
-                            break;
-                    }
-                }
+							_combatBehavior = BuildSubtletyCombatBehavior();
+							Logging.Write(Color.Orange, "Subtlety combat unsupported");
+							break;
+					}
+				}
 
-                return _CombatBehavior; 
-            } 
-        }
+				return _combatBehavior;
+			}
+		}
 
-        #endregion
-    }
+		#endregion
+	}
 }
