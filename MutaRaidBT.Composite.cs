@@ -13,9 +13,9 @@ using CommonBehaviors.Actions;
 using TreeSharp;
 using Action = TreeSharp.Action;
 
-namespace MutaRaidBT
+namespace RogueAssassin
 {
-    public partial class MutaRaidBt
+    public partial class RogueAssassin
     {
         #region Constants
 
@@ -88,6 +88,7 @@ namespace MutaRaidBT
                                                         SetFocus();
                                                         return RunStatus.Failure;
                                                     }),
+                                     AutoAttack(),
                                      CastSpell(GARROTE, ret => Me.IsStealthed),
                                      CastSpell(REDIRECT, ret => Me.ComboPoints < Me.RawComboPoints),
                                      CastSpell(FOK, ret => EnemyUnits.Count() >= AOE_MIN_TARGETS && ShouldWeAoe() && !IsTargetBoss()),

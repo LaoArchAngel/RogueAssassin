@@ -18,9 +18,9 @@ using Styx.WoWInternals.WoWObjects;
 using TreeSharp;
 using Action = TreeSharp.Action;
 
-namespace MutaRaidBT
+namespace RogueAssassin
 {
-    public partial class MutaRaidBt
+    public partial class RogueAssassin
     {
         private const int AOE_RANGE = 12;
 
