@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using Styx.WoWInternals;
 
-namespace Doctrine.Talents
+namespace RogueAssassin.Talents
 {
-	internal class SpecManager
+	static class SpecManager
 	{
 		public enum SpecList
 		{
@@ -23,7 +22,7 @@ namespace Doctrine.Talents
 		private static int CurrentSpecValue()
 		{
 			int tab;
-			int group = CurrentSpecGroup();
+			var group = CurrentSpecGroup();
 
 			var pointsSpent = new int[3];
 
@@ -46,11 +45,11 @@ namespace Doctrine.Talents
 			return pointsSpent[2] > (pointsSpent[0] + pointsSpent[1]) ? 3 : 0;
 		}
 
-		public SpecList Spec
+		public static SpecList Spec
 		{
 			get
 			{
-				int currentSpec = CurrentSpecValue();
+				var currentSpec = CurrentSpecValue();
 				return (SpecList)currentSpec;
 			}
 		}

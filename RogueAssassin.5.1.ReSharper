@@ -5,6 +5,8 @@
     <Sharing>SOLUTION</Sharing>
     <CSharp>
       <FormatSettings>
+        <KEEP_BLANK_LINES_IN_CODE>1</KEEP_BLANK_LINES_IN_CODE>
+        <KEEP_BLANK_LINES_IN_DECLARATIONS>1</KEEP_BLANK_LINES_IN_DECLARATIONS>
         <MODIFIERS_ORDER IsNull="False">
           <Item>public</Item>
           <Item>protected</Item>
@@ -21,6 +23,8 @@
           <Item>unsafe</Item>
           <Item>volatile</Item>
         </MODIFIERS_ORDER>
+        <PLACE_SIMPLE_LINQ_ON_SINGLE_LINE>False</PLACE_SIMPLE_LINQ_ON_SINGLE_LINE>
+        <WRAP_BEFORE_BINARY_OPSIGN>True</WRAP_BEFORE_BINARY_OPSIGN>
       </FormatSettings>
       <UsingsSettings />
       <Naming2>
@@ -71,6 +75,7 @@
       <Abbreviation Text="SND" />
       <Abbreviation Text="TOTT" />
       <Abbreviation Text="AOE" />
+      <Abbreviation Text="RA" />
     </Naming2>
   </CodeStyleSettings>
 </Configuration>
