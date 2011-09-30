@@ -29,7 +29,7 @@ namespace RogueAssassin
 		{
 		    Logging.Write(Color.Orange, "RogueAssassin v{0} Loaded.",
 		                  Version.ToString(3));
-            Helpers.ResetAll += new ResetEventHandler(Auras.Reset);
+            Helpers.ResetAll += Auras.Reset;
 		}
 
 		#region Composite declarations
@@ -43,7 +43,7 @@ namespace RogueAssassin
 			{
 				if (_combatBehavior == null)
 				{
-					switch (Talents.SpecManager.Spec)
+					switch (SpecManager.Spec)
 					{
 						case SpecManager.SpecList.None:
 

@@ -2,6 +2,7 @@
 using CommonBehaviors.Actions;
 using Styx;
 using Styx.Helpers;
+using Styx.Logic.Combat;
 using TreeSharp;
 using Action = TreeSharp.Action;
 
@@ -45,8 +46,8 @@ namespace RogueAssassin.Rotations.MutilatePvE
                                                                                                   == Spells.COLD_BLOOD)
                                                                                        != null)),
                                                    Rupture(),
-                                                   Spells.Cast(Spells.TRICKS_OF_THE_TRADE, Helpers.Focus,
-                                                               ret => Helpers.FocusReadyForTricks),
+                                                   Spells.CastFocus(Spells.TRICKS_OF_THE_TRADE,
+                                                                    ret => Helpers.FocusReadyForTricks),
                                                    CoolDowns(),
                                                    ComboPoint(),
                                                    Spells.CastStatus(Spells.ENVENOM,
