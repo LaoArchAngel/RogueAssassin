@@ -1,8 +1,6 @@
 ﻿using System.Linq;
 using CommonBehaviors.Actions;
 using Styx;
-using Styx.Helpers;
-using Styx.Logic.Combat;
 using TreeSharp;
 using Action = TreeSharp.Action;
 
@@ -70,7 +68,7 @@ namespace RogueAssassin.Rotations.MutilatePvE
         {
             return new PrioritySelector(
                 new Decorator(ret => StyxWoW.Me.CurrentTarget.HealthPercent < 35
-                                     && StyxWoW.Me.CurrentTarget.MeIsBehind
+                                     && !StyxWoW.Me.CurrentTarget.IsFacing(StyxWoW.Me)
                                      && StyxWoW.Me.ComboPoints < 5
                                      && PooledFinisher(EC_BS),
                               Spells.Cast(Spells.BACKSTAB)),
