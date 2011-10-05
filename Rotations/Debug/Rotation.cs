@@ -1,9 +1,7 @@
-﻿using System.Diagnostics;
-using System.Linq;
-using Styx;
+﻿using Styx;
 using Styx.Helpers;
+using Styx.Logic.Combat;
 using TreeSharp;
-using Action = TreeSharp.Action;
 
 namespace RogueAssassin.Rotations.Debug
 {
@@ -19,49 +17,51 @@ namespace RogueAssassin.Rotations.Debug
                                                         return Helpers.ResetFail();
                                                     }),
                                      new Decorator(new Action(delegate
-                                                       {
-                                                           foreach (var aura in StyxWoW.Me.GetAllAuras())
-                                                           {
-                                                               Logging.WriteDebug("{0} {1} {2}", aura.Name, aura.SpellId, aura.ApplyAuraType);
-                                                           }
+                                                                  {
+                                                                      foreach (WoWAura aura in StyxWoW.Me.GetAllAuras())
+                                                                      {
+                                                                          Logging.WriteDebug("{0} {1} {2}", aura.Name,
+                                                                                             aura.SpellId,
+                                                                                             aura.ApplyAuraType);
+                                                                      }
 
-                                                           return RunStatus.Success;
-                                                       })
-                                     )));
+                                                                      return RunStatus.Success;
+                                                                  })
+                                         )));
         }
 
-        private class DebugLog : Action
-        {
-            private readonly string _message;
-            private readonly System.Action _run;
+        //private class DebugLog : Action
+        //{
+        //    private readonly string _message;
+        //    private readonly System.Action _run;
 
-            public DebugLog(string message)
-            {
-                _message = message;
-            }
+        //    public DebugLog(string message)
+        //    {
+        //        _message = message;
+        //    }
 
-            public DebugLog(string message, System.Action run)
-            {
-                _message = message;
-                _run = run;
-            }
+        //    public DebugLog(string message, System.Action run)
+        //    {
+        //        _message = message;
+        //        _run = run;
+        //    }
 
-            protected override RunStatus Run(object context)
-            {
-                if (_run == null)
-                    Logging.Write(_message);
-                else
-                {
-                    var timer = new Stopwatch();
-                    timer.Start();
-                    _run();
-                    timer.Stop();
+        //    protected override RunStatus Run(object context)
+        //    {
+        //        if (_run == null)
+        //            Logging.Write(_message);
+        //        else
+        //        {
+        //            var timer = new Stopwatch();
+        //            timer.Start();
+        //            _run();
+        //            timer.Stop();
 
-                    Logging.Write("{0}: {1}", _message, timer.ElapsedMilliseconds);
-                }
+        //            Logging.Write("{0}: {1}", _message, timer.ElapsedMilliseconds);
+        //        }
 
-                return RunStatus.Failure;
-            }
-        }
+        //        return RunStatus.Failure;
+        //    }
+        //}
     }
 }

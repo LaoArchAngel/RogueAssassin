@@ -2,10 +2,12 @@
 using CommonBehaviors.Actions;
 using Styx;
 using TreeSharp;
-using Action = TreeSharp.Action;
 
 namespace RogueAssassin.Rotations.MutilatePvE
 {
+    /// <summary>
+    /// Defines the rotation for MutilatePvE.
+    /// </summary>
     internal class Rotation
     {
         private const int EC_BS = 30;
@@ -16,8 +18,7 @@ namespace RogueAssassin.Rotations.MutilatePvE
         public Composite Build()
         {
             return
-                new Decorator(ret => !StyxWoW.Me.Mounted
-                                     && StyxWoW.Me.CurrentTarget != null,
+                new Decorator(ret => !StyxWoW.Me.Mounted && StyxWoW.Me.CurrentTarget != null,
                               new PrioritySelector(ret => StyxWoW.Me.CurrentTarget.IsWithinMeleeRange,
                                                    new Action(delegate { return Helpers.ResetFail(); }),
                                                    AutoAttack(),
@@ -26,23 +27,23 @@ namespace RogueAssassin.Rotations.MutilatePvE
                                                                ret => StyxWoW.Me.ComboPoints < StyxWoW.Me.RawComboPoints),
                                                    Spells.Cast(Spells.FAN_OF_KNIVES,
                                                                ret =>
+                                                               RogueAssassin.Settings.FOK && Helpers.AOEIsSafe
+                                                               && !Helpers.TargetIsBoss
+                                                               &&
                                                                Helpers.NearbyEnemies.Count()
-                                                               >= RogueAssassin.Settings.AOEMinTargets
-                                                               && Helpers.AOEIsSafe && !Helpers.TargetIsBoss),
+                                                               >= RogueAssassin.Settings.FOKMinTargets),
                                                    Spells.Cast(Spells.SLICE_AND_DICE,
                                                                ret =>
                                                                StyxWoW.Me.ComboPoints > 0 && Auras.SliceAndDice == null),
-                                                   Spells.Cast(Spells.ENVENOM, ret => StyxWoW.Me.ComboPoints > 0
-                                                                                      && Auras.SliceAndDice != null
-                                                                                      &&
-                                                                                      (Auras.SliceAndDice.TimeLeft.
-                                                                                           Seconds < 2
-                                                                                       || StyxWoW.Me.GetAllAuras()
-                                                                                              .Find(
-                                                                                                  a =>
-                                                                                                  a.SpellId
-                                                                                                  == Spells.COLD_BLOOD)
-                                                                                       != null)),
+                                                   Spells.Cast(Spells.ENVENOM,
+                                                               ret =>
+                                                               StyxWoW.Me.ComboPoints > 0 && Auras.SliceAndDice != null
+                                                               &&
+                                                               (Auras.SliceAndDice.TimeLeft.Seconds < 2
+                                                                ||
+                                                                StyxWoW.Me.GetAllAuras().Find(
+                                                                    a => a.SpellId == Spells.COLD_BLOOD)
+                                                                != null)),
                                                    Rupture(),
                                                    Spells.CastFocus(Spells.TRICKS_OF_THE_TRADE,
                                                                     ret => Helpers.FocusReadyForTricks),
@@ -54,8 +55,7 @@ namespace RogueAssassin.Rotations.MutilatePvE
                                                                      &&
                                                                      ((Auras.Envenom == null
                                                                        && Helpers.CurrentEnergy >= 90)
-                                                                      || Helpers.CurrentEnergy > 105))
-                                  ));
+                                                                      || Helpers.CurrentEnergy > 105))));
         }
 
         private static Composite AutoAttack()
@@ -86,7 +86,7 @@ namespace RogueAssassin.Rotations.MutilatePvE
                                      && Helpers.CurrentEnergy < 95
                                      && (!RogueAssassin.Settings.ColdBloodBossOnly || Helpers.TargetIsBoss),
                               Spells.Cast(Spells.COLD_BLOOD)),
-                new Decorator(ret => RogueAssassin.Settings.UseVanish
+                new Decorator(ret => RogueAssassin.Settings.Vanish
                                      && (!RogueAssassin.Settings.VanishBossOnly || Helpers.TargetIsBoss)
                                      && StyxWoW.Me.GetAllAuras().Find(a => a.SpellId == Spells.OVERKILL) == null
                                      && Auras.Envenom == null,
@@ -111,10 +111,10 @@ namespace RogueAssassin.Rotations.MutilatePvE
             // Determine if rupture is our next finisher.  We determine that by ensuring that we have enough time to
             // cast at least rupture, mutilate, and envenom with our current energy pool before SnD goes out.  Also, 
             // rupture must have less time than SnD.
-            var ruptureNext = Auras.SliceAndDice.TimeLeft > Auras.Rupture.TimeLeft
-                              &&
-                              (EC_RUPTURE + EC_MUTILATE + EC_ENVENOM - Helpers.CurrentEnergy)/10d
-                              > Auras.SliceAndDice.TimeLeft.Seconds;
+            bool ruptureNext = Auras.SliceAndDice.TimeLeft > Auras.Rupture.TimeLeft
+                               &&
+                               (EC_RUPTURE + EC_MUTILATE + EC_ENVENOM - Helpers.CurrentEnergy)/10d
+                               > Auras.SliceAndDice.TimeLeft.Seconds;
 
             if (ruptureNext)
             {

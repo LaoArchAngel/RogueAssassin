@@ -4,14 +4,27 @@ using Styx.WoWInternals;
 
 namespace RogueAssassin.Talents
 {
-	static class SpecManager
+	internal static class SpecManager
 	{
+		#region SpecList enum
+
 		public enum SpecList
 		{
 			None = 0,
 			Assassination,
 			Combat,
 			Subtlety
+		}
+
+		#endregion
+
+		public static SpecList Spec
+		{
+			get
+			{
+				int currentSpec = CurrentSpecValue();
+				return (SpecList) currentSpec;
+			}
 		}
 
 		private static int CurrentSpecGroup()
@@ -22,7 +35,7 @@ namespace RogueAssassin.Talents
 		private static int CurrentSpecValue()
 		{
 			int tab;
-			var group = CurrentSpecGroup();
+			int group = CurrentSpecGroup();
 
 			var pointsSpent = new int[3];
 
@@ -34,24 +47,15 @@ namespace RogueAssassin.Talents
 
 			if (pointsSpent[0] > (pointsSpent[1] + pointsSpent[2]))
 			{
-				return 1;
+			    return 1;
 			}
 
-			if (pointsSpent[1] > (pointsSpent[0] + pointsSpent[2]))
-			{
-				return 2;
-			}
+		    if (pointsSpent[1] > (pointsSpent[0] + pointsSpent[2]))
+		    {
+		        return 2;
+		    }
 
-			return pointsSpent[2] > (pointsSpent[0] + pointsSpent[1]) ? 3 : 0;
-		}
-
-		public static SpecList Spec
-		{
-			get
-			{
-				var currentSpec = CurrentSpecValue();
-				return (SpecList)currentSpec;
-			}
+		    return pointsSpent[2] > (pointsSpent[0] + pointsSpent[1]) ? 3 : 0;
 		}
 	}
 }

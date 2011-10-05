@@ -62,8 +62,9 @@ namespace RogueAssassin
         public static Composite CastFocus(int spell, CanRunDecoratorDelegate condition)
         {
             return new Decorator(
-                ret => condition(ret) && SpellManager.CanCast(spell, Helpers.Focus) && SpellManager.Cast(spell, Helpers.Focus),
-                new SpellLog(spell, Helpers.Focus));            
+                ret =>
+                condition(ret) && SpellManager.CanCast(spell, Helpers.Focus) && SpellManager.Cast(spell, Helpers.Focus),
+                new SpellLog(spell, Helpers.Focus));
         }
 
         public static Composite CastStatus(int spell)
@@ -116,6 +117,8 @@ namespace RogueAssassin
 
         #endregion
 
+        #region Nested type: SpellLog
+
         private class SpellLog : Action
         {
             private readonly int _spell;
@@ -153,5 +156,7 @@ namespace RogueAssassin
                 return Parent is Selector ? RunStatus.Failure : RunStatus.Success;
             }
         }
+
+        #endregion
     }
 }
