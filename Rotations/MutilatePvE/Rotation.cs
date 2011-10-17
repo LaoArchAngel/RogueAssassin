@@ -1,6 +1,8 @@
 ﻿using System.Linq;
 using CommonBehaviors.Actions;
 using Styx;
+using Styx.Helpers;
+using Styx.Logic.Combat;
 using TreeSharp;
 
 namespace RogueAssassin.Rotations.MutilatePvE
@@ -10,10 +12,20 @@ namespace RogueAssassin.Rotations.MutilatePvE
     /// </summary>
     internal class Rotation
     {
+        #region Constants
+        
         private const int EC_BS = 30;
         private const int EC_MUTILATE = 55;
         private const int EC_RUPTURE = 25;
         private const int EC_ENVENOM = 35;
+        
+        #endregion
+
+        #region Properties
+
+        public int LastRupturePoints { get; set; }
+
+        #endregion
 
         public Composite Build()
         {
@@ -60,8 +72,12 @@ namespace RogueAssassin.Rotations.MutilatePvE
 
         private static Composite AutoAttack()
         {
-            return new Decorator(ret => !(StyxWoW.Me.IsAutoAttacking ^ StyxWoW.Me.IsStealthed),
-                                 new Action(delegate { StyxWoW.Me.ToggleAttack(); }));
+            return
+                new Decorator(
+                    ret =>
+                    (StyxWoW.Me.IsStealthed && StyxWoW.Me.IsAutoAttacking)
+                    || (!StyxWoW.Me.IsStealthed && !StyxWoW.Me.IsAutoAttacking),
+                    new Action(delegate { StyxWoW.Me.ToggleAttack(); }));
         }
 
         private static Composite ComboPoint()
@@ -129,20 +145,33 @@ namespace RogueAssassin.Rotations.MutilatePvE
             return EC_ENVENOM + cost <= Helpers.CurrentEnergy;
         }
 
-        private static Composite Rupture()
+        private Composite Rupture()
         {
-            return
-                new Decorator(ret => StyxWoW.Me.ComboPoints > 0
-                                     && (Auras.Rupture == null
-                                         || (Auras.Rupture.TimeLeft < Auras.SliceAndDice.TimeLeft
-                                             && Auras.Rupture.TimeLeft.Seconds < 2)),
-                              new PrioritySelector(Spells.CastStatus(Spells.RUPTURE), ComboPoint(),
-                                                   new ActionAlwaysSucceed()));
+            return new Decorator(ret => StyxWoW.Me.ComboPoints > 0,
+                                 new PrioritySelector(
+                                     new Decorator(ret => Auras.Rupture == null, Spells.CastStatus(Spells.RUPTURE)),
+                                     new Decorator(
+                                         ret =>
+                                         Auras.Rupture == null
+                                         ||
+                                         (Auras.Rupture.TimeLeft < Auras.SliceAndDice.TimeLeft
+                                          && Auras.Rupture.TimeLeft.Seconds < 2),
+                                         new PrioritySelector(
+                                             new Decorator(ret => StyxWoW.Me.ComboPoints >= LastRupturePoints,
+                                                           new Action(delegate
+                                                                          {
+                                                                              LastRupturePoints = StyxWoW.Me.ComboPoints;
+                                                                              Spells.Cast(Spells.RUPTURE);
+                                                                              return RunStatus.Success;
+                                                                          })),
+                                             ComboPoint(),
+                                             new ActionAlwaysSucceed()))));
         }
 
         private static Composite Vanish()
         {
-            return new Sequence(Spells.Cast(Spells.VANISH), new WaitContinue(1, ret => false, new ActionAlwaysSucceed()));
+            return new Sequence(Spells.Cast(Spells.VANISH), new WaitContinue(1, ret => false, new ActionAlwaysSucceed()),
+                                Spells.Cast(Spells.GARROTE));
         }
     }
 }
