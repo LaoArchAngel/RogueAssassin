@@ -40,7 +40,6 @@ namespace RogueAssassin
         {
             Logging.Write(Color.Orange, "RogueAssassin v{0} Loaded.",
                           Version.ToString(3));
-            Helpers.ResetAll += Auras.Reset;
         }
 
         #region Composite declarations

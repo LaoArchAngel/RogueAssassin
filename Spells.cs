@@ -42,6 +42,19 @@ namespace RogueAssassin
                                  new SpellLog(spell));
         }
 
+        /// <summary>
+        /// Casts a spell and executes <paramref name="onSuccess"/> if successful.
+        /// This method will not log anything by default.
+        /// </summary>
+        /// <param name="spell">Id of the spell to cast.</param>
+        /// <param name="conditions">Conditions to test before casting.</param>
+        /// <param name="onSuccess">Action to run on success.</param>
+        /// <returns><see cref="Decorator"/> that casts a spell and performs a custom action.</returns>
+        public static Composite Cast(int spell, CanRunDecoratorDelegate conditions, Action onSuccess)
+        {
+            return new Decorator(ret => conditions(ret) && SpellManager.CanCast(spell) && SpellManager.Cast(spell), onSuccess);
+        }
+
         public static Composite Cast(int spell, WoWUnit target)
         {
             return Cast(spell, target, ret => true);

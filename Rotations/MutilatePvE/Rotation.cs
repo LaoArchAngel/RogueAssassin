@@ -1,8 +1,8 @@
-﻿using System.Linq;
+﻿using System.Drawing;
+using System.Linq;
 using CommonBehaviors.Actions;
 using Styx;
 using Styx.Helpers;
-using Styx.Logic.Combat;
 using TreeSharp;
 
 namespace RogueAssassin.Rotations.MutilatePvE
@@ -13,22 +13,26 @@ namespace RogueAssassin.Rotations.MutilatePvE
     internal class Rotation
     {
         #region Constants
-        
+
         private const int EC_BS = 30;
         private const int EC_MUTILATE = 55;
         private const int EC_RUPTURE = 25;
         private const int EC_ENVENOM = 35;
-        
+
         #endregion
 
         #region Properties
 
         public int LastRupturePoints { get; set; }
+        public Auras Auras { get; set; }
 
         #endregion
 
         public Composite Build()
         {
+            Auras = new Auras();
+            Helpers.ResetAll += Auras.Reset;
+
             return
                 new Decorator(ret => !StyxWoW.Me.Mounted && StyxWoW.Me.CurrentTarget != null,
                               new PrioritySelector(ret => StyxWoW.Me.CurrentTarget.IsWithinMeleeRange,
@@ -77,31 +81,34 @@ namespace RogueAssassin.Rotations.MutilatePvE
                     ret =>
                     (StyxWoW.Me.IsStealthed && StyxWoW.Me.IsAutoAttacking)
                     || (!StyxWoW.Me.IsStealthed && !StyxWoW.Me.IsAutoAttacking),
-                    new Action(delegate { StyxWoW.Me.ToggleAttack(); }));
+                    new Action(delegate
+                                   {
+                                       StyxWoW.Me.ToggleAttack();
+                                       Logging.Write(Color.Gold, "AutoAttack: {0}",
+                                                     StyxWoW.Me.IsAutoAttacking ? "Off" : "On");
+                                   }));
         }
 
-        private static Composite ComboPoint()
+        private Composite ComboPoint()
         {
             return new PrioritySelector(
-                new Decorator(ret => StyxWoW.Me.CurrentTarget.HealthPercent < 35
-                                     && !StyxWoW.Me.CurrentTarget.IsFacing(StyxWoW.Me)
-                                     && StyxWoW.Me.ComboPoints < 5
-                                     && PooledFinisher(EC_BS),
-                              Spells.Cast(Spells.BACKSTAB)),
-                new Decorator(ret => StyxWoW.Me.ComboPoints < 4 && PooledFinisher(EC_MUTILATE),
-                              Spells.Cast(Spells.MUTILATE)));
+                Spells.Cast(Spells.BACKSTAB,
+                            ret => StyxWoW.Me.CurrentTarget.HealthPercent < 35
+                                   && !StyxWoW.Me.CurrentTarget.IsFacing(StyxWoW.Me)
+                                   && StyxWoW.Me.ComboPoints < 5
+                                   && PooledFinisher(EC_BS)),
+                Spells.Cast(Spells.MUTILATE, ret => StyxWoW.Me.ComboPoints < 4 && PooledFinisher(EC_MUTILATE)));
         }
 
-        private static Composite CoolDowns()
+        private Composite CoolDowns()
         {
             return new PrioritySelector(
-                new Decorator(ret => !RogueAssassin.Settings.VendettaBossOnly || Helpers.TargetIsBoss,
-                              Spells.Cast(Spells.VENDETTA)),
-                new Decorator(ret => StyxWoW.Me.ComboPoints == 5
-                                     && Helpers.CurrentEnergy >= 65
-                                     && Helpers.CurrentEnergy < 95
-                                     && (!RogueAssassin.Settings.ColdBloodBossOnly || Helpers.TargetIsBoss),
-                              Spells.Cast(Spells.COLD_BLOOD)),
+                Spells.Cast(Spells.VENDETTA, ret => !RogueAssassin.Settings.VendettaBossOnly || Helpers.TargetIsBoss),
+                Spells.Cast(Spells.COLD_BLOOD,
+                            ret => StyxWoW.Me.ComboPoints == 5
+                                   && Helpers.CurrentEnergy >= 65
+                                   && Helpers.CurrentEnergy < 95
+                                   && (!RogueAssassin.Settings.ColdBloodBossOnly || Helpers.TargetIsBoss)),
                 new Decorator(ret => RogueAssassin.Settings.Vanish
                                      && (!RogueAssassin.Settings.VanishBossOnly || Helpers.TargetIsBoss)
                                      && StyxWoW.Me.GetAllAuras().Find(a => a.SpellId == Spells.OVERKILL) == null
@@ -117,7 +124,7 @@ namespace RogueAssassin.Rotations.MutilatePvE
         /// </summary>
         /// <param name="cost">Cost of our generator.</param>
         /// <returns>True if we've pooled enough energy, or else there's another reason we should not pool.</returns>
-        private static bool PooledFinisher(int cost)
+        private bool PooledFinisher(int cost)
         {
             // Do not pool if we have no combo points.
             if (StyxWoW.Me.ComboPoints == 0) return true;
@@ -127,15 +134,16 @@ namespace RogueAssassin.Rotations.MutilatePvE
             // Determine if rupture is our next finisher.  We determine that by ensuring that we have enough time to
             // cast at least rupture, mutilate, and envenom with our current energy pool before SnD goes out.  Also, 
             // rupture must have less time than SnD.
-            bool ruptureNext = Auras.SliceAndDice.TimeLeft > Auras.Rupture.TimeLeft
-                               &&
-                               (EC_RUPTURE + EC_MUTILATE + EC_ENVENOM - Helpers.CurrentEnergy)/10d
-                               > Auras.SliceAndDice.TimeLeft.Seconds;
+            var ruptureNext = Auras.SliceAndDice.TimeLeft > Auras.Rupture.TimeLeft
+                              &&
+                              (EC_RUPTURE + EC_MUTILATE + EC_ENVENOM - Helpers.CurrentEnergy)/10d
+                              > Auras.SliceAndDice.TimeLeft.Seconds;
 
             if (ruptureNext)
             {
                 if (EC_RUPTURE + cost < Helpers.CurrentEnergy) return true;
                 if (Auras.Envenom.TimeLeft.Seconds + (EC_RUPTURE/10d) < Auras.Rupture.TimeLeft.Seconds) return true;
+                if (LastRupturePoints >= StyxWoW.Me.ComboPoints) return true;
 
                 // EC_RUPTURE + cost - _currentEnergy = Deficit from casting both a combo point and finisher.
                 // ((RuptureDebuff - 2) * 10) = energy that can be pooled before Rupture is 2 secs from falling off.
@@ -149,23 +157,34 @@ namespace RogueAssassin.Rotations.MutilatePvE
         {
             return new Decorator(ret => StyxWoW.Me.ComboPoints > 0,
                                  new PrioritySelector(
-                                     new Decorator(ret => Auras.Rupture == null, Spells.CastStatus(Spells.RUPTURE)),
-                                     new Decorator(
-                                         ret =>
-                                         Auras.Rupture == null
-                                         ||
-                                         (Auras.Rupture.TimeLeft < Auras.SliceAndDice.TimeLeft
-                                          && Auras.Rupture.TimeLeft.Seconds < 2),
-                                         new PrioritySelector(
-                                             new Decorator(ret => StyxWoW.Me.ComboPoints >= LastRupturePoints,
-                                                           new Action(delegate
-                                                                          {
-                                                                              LastRupturePoints = StyxWoW.Me.ComboPoints;
-                                                                              Spells.Cast(Spells.RUPTURE);
-                                                                              return RunStatus.Success;
-                                                                          })),
-                                             ComboPoint(),
-                                             new ActionAlwaysSucceed()))));
+                                     Spells.Cast(Spells.RUPTURE, ret => Auras.Rupture == null,
+                                                 new Action(delegate
+                                                                {
+                                                                    Logging.Write("[{0}][{1}][{2}]Rupture",
+                                                                                  Helpers.CurrentEnergy,
+                                                                                  LastRupturePoints,
+                                                                                  StyxWoW.Me.ComboPoints);
+                                                                    LastRupturePoints = StyxWoW.Me.ComboPoints;
+                                                                })),
+                                     new Decorator(ret => (Auras.Rupture != null)
+                                                          && (Auras.Rupture.TimeLeft < Auras.SliceAndDice.TimeLeft
+                                                              && Auras.Rupture.TimeLeft.Seconds < 2),
+                                                   new PrioritySelector(
+                                                       Spells.Cast(Spells.RUPTURE,
+                                                                   ret =>
+                                                                   StyxWoW.Me.ComboPoints > LastRupturePoints,
+                                                                   new Action(delegate
+                                                                                  {
+                                                                                      Logging.Write(
+                                                                                          "[{0}][{1}][{2}]Rupture",
+                                                                                          Helpers.CurrentEnergy,
+                                                                                          LastRupturePoints,
+                                                                                          StyxWoW.Me.ComboPoints);
+                                                                                      LastRupturePoints =
+                                                                                          StyxWoW.Me.ComboPoints;
+                                                                                  })),
+                                                       ComboPoint(),
+                                                       new ActionAlwaysSucceed()))));
         }
 
         private static Composite Vanish()

@@ -7,13 +7,13 @@ namespace RogueAssassin
     /// Contains all of the Auras used by rogues.
     /// These auras are loaded on the first call from the BT.
     /// </summary>
-    internal static class Auras
+    internal class Auras
     {
         #region Fields
 
-        private static WoWAura _envenom;
-        private static WoWAura _rupture;
-        private static WoWAura _sliceAndDice;
+        private WoWAura _envenom;
+        private WoWAura _rupture;
+        private WoWAura _sliceAndDice;
 
         #endregion
 
@@ -23,7 +23,7 @@ namespace RogueAssassin
         /// Envenom buff on the player.
         /// Null if no buff was found.
         /// </summary>
-        public static WoWAura Envenom
+        public WoWAura Envenom
         {
             get { return _envenom ?? (_envenom = StyxWoW.Me.GetAllAuras().Find(a => a.SpellId == Spells.ENVENOM)); }
         }
@@ -32,7 +32,7 @@ namespace RogueAssassin
         /// Rupture debuff on the target.
         /// Null if Rupture is down.
         /// </summary>
-        public static WoWAura Rupture
+        public WoWAura Rupture
         {
             get
             {
@@ -46,7 +46,7 @@ namespace RogueAssassin
         /// Slice and Dice buff on the player.
         /// Null if SnD is down.
         /// </summary>
-        public static WoWAura SliceAndDice
+        public WoWAura SliceAndDice
         {
             get
             {
@@ -62,7 +62,7 @@ namespace RogueAssassin
         /// <summary>
         /// Resets the properties fields used by the properties so that they can be reset.
         /// </summary>
-        public static void Reset()
+        public void Reset()
         {
             _envenom = null;
             _rupture = null;
